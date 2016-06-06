@@ -5,6 +5,20 @@
 }(this, function () {
     'use strict';
 
+    var TRANSITION_PROPERTIES = [
+        'background', 'border', 'borderRadius', 'boxShadow', 'boxSizing', 'clip', 'color', 'opacity',
+        'font', 'letterSpacing', 'lineHeight', 'textAlign', 'textAnchor', 'textShadow', 'textIndent', 'textDecoration', 'textOverflow', 'textRendering',
+        'top', 'left', 'right', 'bottom',
+        'height', 'width',
+        //'maxHeight', 'maxWidth', 'minHeight', 'minWidth',
+        //'margin',
+        'padding',
+        //'zIndex',
+        'overflow',
+        //'perspective', 'perspectiveOrigin',
+        //'transform', 'transformOrigin' // translate will be handled by BCR, but scale/skew/rotate can't be handled
+    ];
+
     function BetweenElements() {
         this.fromElement = null;
         this.fromBCR = null;
@@ -13,6 +27,8 @@
         this.toElement = null;
         this.toBCR = null;
         this.toStyle = null;
+
+        this.transitionEnd = false;
     }
 
 
@@ -35,7 +51,7 @@
             cloneElement.style.left = this.fromBCR.left + 'px';
             //cloneElement.style.width = this.fromBCR.width + 'px';
             //cloneElement.style.height = this.fromBCR.height + 'px';
-            cloneElement.style.transition = 'all .3s ease';
+            cloneElement.style.transition = 'all 3s ease';
 
             // need to set margin as 0, coz getBoundingClientRect doesn't contain margin
             cloneElement.style.margin = '0';
@@ -53,17 +69,36 @@
             this.toStyle.position = 'fixed';
             this.toStyle.top = this.toBCR.top + 'px';
             this.toStyle.left = this.toBCR.left + 'px';
-            //this.toStyle.width = this.toBCR.width + 'px';
-            //this.toStyle.height = this.toBCR.height + 'px';
-            this.toStyle.transition = 'all .3s ease';
-            this.toStyle.margin = this.toStyle.marginLeft = this.toStyle.marginRight = this.toStyle.marginTop = this.toStyle.marginBottom = 0;
-           // this.fromElement.style = this.toStyle;
+            this.toStyle.transition = 'all 3s ease';
+            this.toStyle.margin
+                = this.toStyle.marginLeft
+                = this.toStyle.marginRight
+                = this.toStyle.marginTop
+                = this.toStyle.marginBottom
+                = 0;
 
-            setTimeout(function() {
-                ['top', 'left', 'width', 'height', 'background', 'border', 'borderRadius', 'padding'].forEach(function(name) {
-                    this.fromElement.style[name] = this.toStyle[name];
+            var _end = function() {
+                if(this.transitionEnd) {
+                    this.fromElement.removeEventListener('transitionend', _end);
+                    return;
+                }
+
+                console.log('transition end');
+                this.transitionEnd = true;
+                this.fromElement.remove();
+            }.bind(this);
+
+            this.fromElement.addEventListener('transitionend', _end);
+            this.transitionEnd = false;
+
+            requestAnimationFrame(function() {
+                var style = getComputedStyle(this.fromElement);
+
+                TRANSITION_PROPERTIES.forEach(function(name) {
+                    if(style[name] != this.toStyle[name])
+                        this.fromElement.style[name] = this.toStyle[name];
                 }, this);
-            }.bind(this), 10);
+            }.bind(this));
 
         },
 
@@ -83,7 +118,7 @@
         },
 
         cancel: function() {
-
+            this.fromElement.remove();
         },
 
         rollback: function() {
@@ -101,7 +136,6 @@
             this.toElement = el;
             this.toBCR = el.getBoundingClientRect();
             this.toStyle = Object.assign({}, getComputedStyle(el));
-            drawBoundingClientRect(el)
             return this;
         }
     };

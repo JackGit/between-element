@@ -23,29 +23,70 @@
             border: 10px solid green;
         }
 
+        .source2 {
+            background: grey;
+            border: 1px dashed black;
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
+        }
+
         .target {
             background: purple;
             width: 400px;
             height: 200px;
             margin: 20px;
             padding: 20px;
+            color: white;
+            font-size: 4em;
+            font-weight: 500;
+            font-family: monospace;
+            text-decoration: underline;
+            border: 20px solid red;
+        }
+
+        .target2 {
+            box-sizing: border-box;
+            background-color: green;
+            min-height: 200px;
+            display: inline-block;
+            width: 100px;
+            position: fixed;
+            top: 20px;
+            left: 100px;
+            padding: 30px;
+            font-size: 5em;
+            overflow: hidden;
+            letter-spacing: 30px;
+            text-shadow: 1px 1px white;
         }
     </style>
 </head>
 <body>
     <div>
-        <div class="source" onclick="between.start()">
+        <div class="source">
             123
         </div>
+        <div class="source2"></div>
     </div>
     <div>
-        <div class="target"></div>
+        <div class="target">123</div>
+        <div class="target2"></div>
     </div>
+    <button id="btn">start</button>
 <script src="src/between-elements.js"></script>
 <script>
     var from = document.querySelector('.source');
     var to = document.querySelector('.target');
     var between = new BetweenElements();
+
+    document.getElementById('btn').addEventListener('click', function() {
+        var bw = new BetweenElements();
+        bw.from(document.querySelector('.source2'));
+        bw.to(document.querySelector('.target2'));
+        bw.start();
+        between.start();
+    });
 
     between.from(from);
     between.to(to);
