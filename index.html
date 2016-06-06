@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            background: lightseagreen;
+        }
+
+        .source {
+            background: red;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 10px;
+            padding: 10px;
+            border: 10px solid green;
+        }
+
+        .target {
+            background: purple;
+            width: 400px;
+            height: 200px;
+            margin: 20px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="source" onclick="between.start()">
+            123
+        </div>
+    </div>
+    <div>
+        <div class="target"></div>
+    </div>
+<script src="src/between-elements.js"></script>
+<script>
+    var from = document.querySelector('.source');
+    var to = document.querySelector('.target');
+    var between = new BetweenElements();
+
+    between.from(from);
+    between.to(to);
+</script>
+</body>
+</html>
