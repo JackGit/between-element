@@ -53,7 +53,7 @@
             height: 100px;
             background: lightcoral;
             border-radius: 2px;
-            top: 10px;
+            top: 20px;
             left: 200px;
         }
     </style>
@@ -82,16 +82,6 @@
 
         toggle = !toggle;
     });
-
-   function buildTree(data) {
-       data.forEach(function(e) {
-           e = {el: e, parents: []}
-           data.forEach(function(c) {
-               if((c.el || c).contains(e.el))
-                   e.parents.push(c.el || c);
-           })
-       })
-   }
 </script>
 </body>
 </html>

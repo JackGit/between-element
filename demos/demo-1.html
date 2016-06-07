@@ -88,11 +88,8 @@
         detailsView.classList.remove('active');
         listView.classList.add('active');
 
-        setTimeout(function() {
-            var b = new BetweenElements(document.querySelector('.header'));
-            b.moveToElement(document.querySelector('.list-item'), {duration: 500, overrideIncomingOpacity: true});
-        }, 100);
-
+        var b = new BetweenElements(document.querySelector('.header'));
+        b.moveToElement(document.querySelector('.list-item'), {duration: 500, overrideIncomingOpacity: true});
     }
 
     function goToDetailsView() {
