@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=0">
     <title></title>
     <style>
         * {
@@ -23,6 +24,19 @@
             border: 10px solid green;
         }
 
+        .source.active {
+            background: black;
+            border-radius: 0;
+            width: 180px;
+        }
+        .source.active2 {
+            position: relative;
+            background: blue;
+            border-radius: 0;
+            width: 130px;
+            top: 200px;
+            left: 200px;
+        }
         .source2 {
             background: grey;
             border: 1px dashed black;
@@ -76,20 +90,30 @@
     <button id="btn">start</button>
 <script src="src/between-elements.js"></script>
 <script>
-    var from = document.querySelector('.source');
-    var to = document.querySelector('.target');
-    var between = new BetweenElements();
+    var between = new BetweenElements({duration: 300, removeFromElement: false});
+    between.on('complete', function(event) {
+        console.log('complete one')
+    }).on('allComplete', function() {
+        console.log('all completed');
+    })
 
-    document.getElementById('btn').addEventListener('click', function() {
-        var bw = new BetweenElements();
-        bw.from(document.querySelector('.source2'));
-        bw.to(document.querySelector('.target2'));
-        bw.start();
+
+    document.body.addEventListener('click', function() {
+
+        between.from(document.querySelector('.source'));
+        between.addClass('active', {duration: 3000});
+        between.addClass('active2', {duration: 3000});
+        between.removeClass('active2', {duration: 3000});
+        //between.removeClass('active', {duration: 3000});
+        return;
+        between.to(document.querySelector('.source2'));
+        between.to(document.querySelector('.target'), {easing: 'ease-in', duration: 1000});
+        between.to(document.querySelector('.target2'));
+
         between.start();
+
     });
 
-    between.from(from);
-    between.to(to);
 </script>
 </body>
 </html>
