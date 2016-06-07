@@ -79,7 +79,6 @@
         },
 
         _transition: function() {
-            console.log('_transition()')
             var that = this;
             var toStyle = this.lastState.style;
             var toBCR = this.lastState.BCR;
@@ -110,13 +109,13 @@
             if(this.status === 'end') {
                 this.clonedElement.removeEventListener('transitionend', this.transitionEndHandler);
                 this.clonedElement = null;
-                this._trigger('complete');
+                this._trigger('done');
 
                 // consume next toElement from the array
                 if(this.queue.length > 0)
                     requestAnimationFrame(this._execute.bind(this));
                 else
-                    this._trigger('allComplete');
+                    this._trigger('allDone');
 
                 return;
             }
@@ -127,6 +126,9 @@
             element.style.opacity = oldStyle.opacity;
             element.style.pointerEvents = oldStyle.pointerEvents;
 
+            // add or remove class for class operations
+            // and set transition as none before it
+            // and set transition back after it
             element.style.transition = 'none';
             if(this.currentCommand.type === 'addClass')
                 element.classList.add(this.currentCommand.className);
@@ -140,6 +142,7 @@
             this.clonedElement.remove();
             this.firstState = null;
             this.lastState = null;
+            this.currentCommand = null;
             this.status = 'end';
         },
 
@@ -260,7 +263,7 @@
             };
 
             this.queue.push(command);
-            if(this.status !== 'transitioning')
+            if(this.queue.length === 1)
                 this._execute();
 
             return this;
@@ -274,7 +277,7 @@
             };
 
             this.queue.push(command);
-            if(this.status !== 'transitioning')
+            if(this.queue.length === 1)
                 this._execute();
 
             return this;
@@ -289,7 +292,7 @@
             };
 
             this.queue.push(command);
-            if(this.status !== 'transitioning')
+            if(this.queue.length === 1)
                 this._execute();
 
             return this;
@@ -304,7 +307,7 @@
             };
 
             this.queue.push(command);
-            if(this.status !== 'transitioning')
+            if(this.queue.length === 1)
                 this._execute();
 
             return this;

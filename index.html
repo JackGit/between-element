@@ -95,20 +95,21 @@
 <script src="src/between-elements.js"></script>
 <script>
     var between = new BetweenElements(document.querySelector('.source'), {duration: 300, removeFromElement: false});
-    between.on('complete', function(event) {
+    between.on('done', function(event) {
         console.log('complete one')
-    }).on('allComplete', function() {
+    }).on('allDone', function() {
         console.log('all completed');
     })
 
 
     document.body.addEventListener('click', function() {
 
-        between.addClass('active', {duration: 300});
-        between.addClass('active2', {duration: 300});
-        between.removeClass('active2', {duration: 3000});
-        between.removeClass('active', {duration: 3000});
-        between.moveToElement(document.querySelector('.source2'));
+        between.addClass('active', {duration: 300})
+                .addClass('active2', {duration: 300})
+                .removeClass('active2', {duration: 3000})
+                .removeClass('active', {duration: 3000})
+                .moveToElement(document.querySelector('.source2'));
+        return;
         between.copyToElement(document.querySelector('.target'), {easing: 'ease-in', duration: 1000});
         between.copyToElement(document.querySelector('.target2'));
 
