@@ -92,26 +92,22 @@
         <div class="target2"></div>
     </div>
     <button id="btn">start</button>
-<script src="src/between-elements.js"></script>
+<script src="../src/between-elements.js"></script>
 <script>
-    var between = new BetweenElements(document.querySelector('.source'), {duration: 300, removeFromElement: false});
-    between.on('done', function(event) {
-        console.log('complete one')
-    }).on('allDone', function() {
-        console.log('all completed');
-    })
+    var b1 = new BetweenElements(document.querySelector('.source'), {easing: 'cubic-bezier(.83,.03,.42,1.03)'});
+    var b2 = new BetweenElements(document.querySelector('.source2'));
+
 
 
     document.body.addEventListener('click', function() {
 
-        between.addClass('active', {duration: 300})
-                .addClass('active2', {duration: 300})
-                .removeClass('active2', {duration: 3000})
-                .removeClass('active', {duration: 3000})
+        b1.addClass('active', {duration: 300, easing: 'cubic-bezier(.83,.03,.42,1.03)'})
+                .addClass('active2', {duration: 500})
+                .removeClass('active2', {duration: 1000})
+                .removeClass('active', {duration: 800})
                 .moveToElement(document.querySelector('.source2'));
-        return;
-        between.copyToElement(document.querySelector('.target'), {easing: 'ease-in', duration: 1000});
-        between.copyToElement(document.querySelector('.target2'));
+        b2.copyToElement(document.querySelector('.target'), {easing: 'ease-in', duration: 1000});
+        b2.copyToElement(document.querySelector('.target2'));
 
     });
 

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=0">
+    <title></title>
+    <style>
+        .view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            transition: all .3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .view.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .list-view {
+            background: lightgrey;
+            list-style: none;
+            padding: 40px 20px;
+            margin: 0;
+            justify-content: space-around;
+            flex-direction: row;
+            align-items: center;
+        }
+        .list-item {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: lightseagreen;
+        }
+
+        .details-view {
+            flex-direction: column;
+            background: lightcyan;
+        }
+
+        .header {
+            background: lightseagreen;
+            height: 200px;
+            width: 100%;
+        }
+        .grid {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            padding: 40px;
+        }
+        .grid-item {
+            width: 60px;
+            height: 60px;
+            border-radius: 2px;
+            display: inline-block;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <ul class="list-view view active" onclick="goToDetailsView()">
+        <li class="list-item"></li>
+        <li class="list-item"></li>
+        <li class="list-item"></li>
+    </ul>
+    <div class="details-view view" onclick="goToListView()">
+        <div class="header">
+        </div>
+        <div class="grid">
+            <div class="grid-item"></div>
+            <div class="grid-item"></div>
+            <div class="grid-item"></div>
+        </div>
+    </div>
+<script src="../src/between-elements.js"></script>
+<script>
+    var listView = document.querySelector('.list-view');
+    var detailsView = document.querySelector('.details-view');
+
+    function goToListView() {
+        detailsView.classList.remove('active');
+        listView.classList.add('active');
+
+        setTimeout(function() {
+            var b = new BetweenElements(document.querySelector('.header'));
+            b.moveToElement(document.querySelector('.list-item'), {duration: 500, overrideIncomingOpacity: true});
+        }, 100);
+
+    }
+
+    function goToDetailsView() {
+        listView.classList.remove('active');
+        detailsView.classList.add('active');
+
+        var b = new BetweenElements(document.querySelector('.list-item'));
+        b.moveToElement(document.querySelector('.header'), {duration: 500, overrideIncomingOpacity: true});
+    }
+
+
+</script>
+</body>
+</html>

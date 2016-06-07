@@ -1,3 +1,9 @@
+/**
+ * restrictions:
+ *  1. addClass/removeClass only applies for siblings elements
+ *  2. and z-index needs to be handle by yourself
+ */
+
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
         typeof define === 'function' && define.amd ? define(factory) :
@@ -22,7 +28,8 @@
     function BetweenElements(el, options) {
         var defaultOptions = {
             easing: 'ease',
-            duration: 300   // ms
+            duration: 300,   // ms
+            overrideIncomingOpacity: true
         };
 
         this.options = Object.assign(defaultOptions, options);
@@ -238,6 +245,7 @@
         _execToElement: function() {
             var fromEl = this.el;
             var toEl = this.currentCommand.el;
+            var newStyle;
 
             if(fromEl === toEl)
                 return;
@@ -247,9 +255,14 @@
                 style: this._styleSnapshot(fromEl)
             };
 
+            newStyle = this._styleSnapshot(toEl);
+
+            if(this.options.overrideIncomingOpacity)
+                newStyle.opacity = 1; // override incoming opacity as always 1
+
             this.lastState = {
                 BCR: toEl.getBoundingClientRect(),
-                style: this._styleSnapshot(toEl)
+                style: newStyle
             };
 
             this._transit();
@@ -263,7 +276,7 @@
             };
 
             this.queue.push(command);
-            if(this.queue.length === 1)
+            if(this.queue.length === 1 && this.status !== 'transitioning')
                 this._execute();
 
             return this;
@@ -277,7 +290,7 @@
             };
 
             this.queue.push(command);
-            if(this.queue.length === 1)
+            if(this.queue.length === 1 && this.status !== 'transitioning')
                 this._execute();
 
             return this;
@@ -292,7 +305,7 @@
             };
 
             this.queue.push(command);
-            if(this.queue.length === 1)
+            if(this.queue.length === 1 && this.status !== 'transitioning')
                 this._execute();
 
             return this;
@@ -307,7 +320,7 @@
             };
 
             this.queue.push(command);
-            if(this.queue.length === 1)
+            if(this.queue.length === 1 && this.status !== 'transitioning')
                 this._execute();
 
             return this;
@@ -321,6 +334,7 @@
             return this;
         }
     };
+
 
     return BetweenElements;
 }));

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=0">
+    <title></title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            background: lightseagreen;
+        }
+
+        .card-container {
+            display: inline-block;
+            position: relative;
+        }
+
+        .card {
+            display: inline-block;
+            padding: 20px;
+            margin: 10px;
+            background: white;
+            width: 100px;
+            height: 100px;
+            box-sizing: border-box;
+            box-shadow: 1px 1px 3px grey;
+            border-radius: 5px;
+        }
+
+        .card.expand {
+            width: 300px;
+            height: 200px;
+            padding: 0;
+        }
+
+        .avatar {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: lightskyblue;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .avatar.expand {
+            width: 100px;
+            height: 100px;
+            background: lightcoral;
+            border-radius: 2px;
+            top: 10px;
+            left: 200px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card-container">
+    <div class="card"></div>
+    <span class="avatar"></span>
+</div>
+
+<script src="../src/between-elements.js"></script>
+<script>
+    var b1 = new BetweenElements(document.querySelector('.card'));
+    var b2 = new BetweenElements(document.querySelector('.avatar'));
+    var toggle = true;
+
+    document.body.addEventListener('click', function() {
+        if(toggle) {
+            b1.addClass('expand');
+            b2.addClass('expand');
+        } else {
+            b1.removeClass('expand');
+            b2.removeClass('expand');
+        }
+
+        toggle = !toggle;
+    });
+
+   function buildTree(data) {
+       data.forEach(function(e) {
+           e = {el: e, parents: []}
+           data.forEach(function(c) {
+               if((c.el || c).contains(e.el))
+                   e.parents.push(c.el || c);
+           })
+       })
+   }
+</script>
+</body>
+</html>
