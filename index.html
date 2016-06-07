@@ -15,6 +15,7 @@
         }
 
         .source {
+            position: relative;
             background: red;
             width: 100px;
             height: 100px;
@@ -25,9 +26,12 @@
         }
 
         .source.active {
+            position: relative;
             background: black;
             border-radius: 0;
             width: 180px;
+            top: 100px;
+            box-shadow: 100px 10px black;
         }
         .source.active2 {
             position: relative;
@@ -90,7 +94,7 @@
     <button id="btn">start</button>
 <script src="src/between-elements.js"></script>
 <script>
-    var between = new BetweenElements({duration: 300, removeFromElement: false});
+    var between = new BetweenElements(document.querySelector('.source'), {duration: 300, removeFromElement: false});
     between.on('complete', function(event) {
         console.log('complete one')
     }).on('allComplete', function() {
@@ -100,17 +104,13 @@
 
     document.body.addEventListener('click', function() {
 
-        between.from(document.querySelector('.source'));
-        between.addClass('active', {duration: 3000});
-        between.addClass('active2', {duration: 3000});
+        between.addClass('active', {duration: 300});
+        between.addClass('active2', {duration: 300});
         between.removeClass('active2', {duration: 3000});
-        //between.removeClass('active', {duration: 3000});
-        return;
-        between.to(document.querySelector('.source2'));
-        between.to(document.querySelector('.target'), {easing: 'ease-in', duration: 1000});
-        between.to(document.querySelector('.target2'));
-
-        between.start();
+        between.removeClass('active', {duration: 3000});
+        between.moveToElement(document.querySelector('.source2'));
+        between.copyToElement(document.querySelector('.target'), {easing: 'ease-in', duration: 1000});
+        between.copyToElement(document.querySelector('.target2'));
 
     });
 

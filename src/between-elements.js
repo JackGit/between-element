@@ -19,20 +19,20 @@
         //'transform', 'transformOrigin' // translate will be handled by BCR, but scale/skew/rotate can't be handled
     ];
 
-    function BetweenElements(options) {
+    function BetweenElements(el, options) {
         var defaultOptions = {
             easing: 'ease',
-            duration: 300,   // ms
-            removeFromElement: false
+            duration: 300   // ms
         };
 
         this.options = Object.assign(defaultOptions, options);
 
-        this.fromElement = null;
-        this.fromStyle = null;
-        this.fromBCR = null;
+        this.el = el;
         this.clonedElement = null;
-        this.toElements = []; // {el, BRC, style}
+        this.currentCommand = null;
+        this.queue = []; // {type: 'element | class', element: el, className: '', BRC: '', style: '', options: {}}
+        this.firstState = null;
+        this.lastState = null;
 
         this.status = ''; // '' -> 'transitioning' -> 'end'
         this.transitionEndHandler = this._end.bind(this);
@@ -48,37 +48,41 @@
         },
 
         _clone: function() {
-            var toElement = this.toElements[0];
+            var element = this.el;
+            var actionType = this.currentCommand.type;
+            var options = this.currentCommand.options;
+            var BCR = this.firstState.BCR;
 
             // if there is only a text node child, then do deep clone
-            if(this.fromElement.childNodes.length === 1 && this.fromElement.childNodes[0].nodeType === 3)
-                this.clonedElement = this.fromElement.cloneNode(true);
+            if(element.childNodes.length === 1 && element.childNodes[0].nodeType === 3)
+                this.clonedElement = element.cloneNode(true);
             else
-                this.clonedElement = this.fromElement.cloneNode();
+                this.clonedElement = element.cloneNode();
 
             // position the cloned element
             this.clonedElement.style.position = 'fixed';
-            this.clonedElement.style.top = this.fromBCR.top + 'px';
-            this.clonedElement.style.left = this.fromBCR.left + 'px';
-            this.clonedElement.style.transition = this._transitionValue(toElement.options.duration, toElement.options.easing);
+            this.clonedElement.style.top = BCR.top + 'px';
+            this.clonedElement.style.left = BCR.left + 'px';
+            this.clonedElement.style.transition = this._transitionValue(options.duration, options.easing);
 
             // need to set margin as 0, coz getBoundingClientRect doesn't contain margin
             this.clonedElement.style.margin = '0';
 
             // remove the origin from element
-            if(toElement.options.removeFromElement || toElement.className) {
-                this.fromElement.style.transition = 'none';
-                this.fromElement.style.opacity = 0;
-                this.fromElement.style.pointerEvents = 'none';
+            if(['addClass', 'removeClass', 'moveToElement'].indexOf(actionType) !== -1) {
+                element.style.transition = 'none';
+                element.style.opacity = 0;
+                element.style.pointerEvents = 'none';
             }
 
             document.body.appendChild(this.clonedElement);
         },
 
         _transition: function() {
+            console.log('_transition()')
             var that = this;
-            var toStyle = this.toElements[0].style;
-            var toBCR = this.toElements[0].BCR;
+            var toStyle = this.lastState.style;
+            var toBCR = this.lastState.BCR;
 
             toStyle.position = 'fixed';
             toStyle.top = toBCR.top + 'px';
@@ -109,31 +113,34 @@
                 this._trigger('complete');
 
                 // consume next toElement from the array
-                if(this.toElements.length > 0)
-                    requestAnimationFrame(this._start.bind(this));
+                if(this.queue.length > 0)
+                    requestAnimationFrame(this._execute.bind(this));
                 else
                     this._trigger('allComplete');
 
                 return;
             }
 
-            var from = this.toElements.shift();
+            var element = this.currentCommand.el;
+            var oldStyle = this.firstState.style;
 
-            this.status = 'end';
-            this.fromElement = from.el;
-            this.fromBCR = from.BCR;
-            this.fromStyle = from.style;
+            element.style.opacity = oldStyle.opacity;
+            element.style.pointerEvents = oldStyle.pointerEvents;
+
+            element.style.transition = 'none';
+            if(this.currentCommand.type === 'addClass')
+                element.classList.add(this.currentCommand.className);
+            else if(this.currentCommand.type === 'removeClass')
+                element.classList.remove(this.currentCommand.className);
+            element.style.transition = oldStyle.transition;
+
+            if(['copyToElement', 'moveToElement'].indexOf(this.currentCommand.type) !== -1)
+                this.el = this.currentCommand.el;
+
             this.clonedElement.remove();
-
-            if(from.className) {
-                from.removeClass ?
-                    this.fromElement.classList.remove(from.className) :
-                    this.fromElement.classList.add(from.className);
-
-                this.fromElement.style.transition = this.fromStyle.transition;
-                this.fromElement.style.opacity = this.fromStyle.opacity;
-                this.fromElement.style.pointerEvents = this.fromStyle.pointerEvents;
-            }
+            this.firstState = null;
+            this.lastState = null;
+            this.status = 'end';
         },
 
         _trigger: function(event) {
@@ -143,105 +150,162 @@
             });
         },
 
-        _start: function() {
-            if(!this.fromElement || this.toElements.length === 0) {
-                console.error('[BetweenElement] please set from and to element');
-                return;
-            }
-
+        _transit: function() {
             this.status = 'transitioning';
             this._clone();
             this._transition();
         },
 
-        from: function(el) {
-            this.fromElement = el;
-            this.fromBCR = el.getBoundingClientRect();
-            this.fromStyle = Object.assign({}, getComputedStyle(this.fromElement));
+        _execute: function() {
+            if(this.queue.length === 0)
+                return;
+
+            this.currentCommand = this.queue.shift();
+
+            switch(this.currentCommand.type) {
+                case 'addClass':
+                    this._execAddClass();
+                    break;
+                case 'removeClass':
+                    this._execRemoveClass();
+                    break;
+                case 'moveToElement':
+                case 'copyToElement':
+                    this._execToElement();
+                    break;
+                default:
+                    break;
+            }
+        },
+
+        _styleSnapshot: function(el) {
+            return Object.assign({}, getComputedStyle(el));
+        },
+
+        _execAddClass: function() {
+            var el = this.currentCommand.el;
+            var className = this.currentCommand.className;
+
+            if(el.classList.contains(className))
+                return;
+
+            // assign first state
+            this.firstState = {
+                BCR: el.getBoundingClientRect(),
+                style: this._styleSnapshot(el)
+            };
+
+            // add class and assign last state
+            el.classList.add(className);
+
+            this.lastState = {
+                BCR: el.getBoundingClientRect(),
+                style: this._styleSnapshot(el)
+            };
+
+            el.classList.remove(className);
+            this._transit();
+        },
+
+        _execRemoveClass: function() {
+            var el = this.currentCommand.el;
+            var className = this.currentCommand.className;
+
+            if(!el.classList.contains(className))
+                return;
+
+            // assign first state
+            this.firstState = {
+                BCR: el.getBoundingClientRect(),
+                style: this._styleSnapshot(el)
+            };
+
+            // add class and assign last state
+            el.classList.remove(className);
+
+            this.lastState = {
+                BCR: el.getBoundingClientRect(),
+                style: this._styleSnapshot(el)
+            };
+
+            el.classList.add(className);
+            this._transit();
+        },
+
+        _execToElement: function() {
+            var fromEl = this.el;
+            var toEl = this.currentCommand.el;
+
+            if(fromEl === toEl)
+                return;
+
+            this.firstState = {
+                BCR: fromEl.getBoundingClientRect(),
+                style: this._styleSnapshot(fromEl)
+            };
+
+            this.lastState = {
+                BCR: toEl.getBoundingClientRect(),
+                style: this._styleSnapshot(toEl)
+            };
+
+            this._transit();
+        },
+
+        copyToElement: function(el, options) {
+            var command = {
+                type: 'copyToElement',
+                el: el,
+                options: Object.assign({}, this.options, options)
+            };
+
+            this.queue.push(command);
+            if(this.status !== 'transitioning')
+                this._execute();
+
             return this;
         },
 
-        to: function(el, options) {
-            if(this.fromElement === el)
-                return;
-
-            var style;
-
-            options = Object.assign({}, this.options, options);
-
-            // el is another element
-            style = Object.assign({}, getComputedStyle(el));
-            this.toElements.push({
+        moveToElement: function(el, options) {
+            var command = {
+                type: 'moveToElement',
                 el: el,
-                BCR: el.getBoundingClientRect(),
-                style: style,
-                options: options
-            });
+                options: Object.assign({}, this.options, options)
+            };
 
+            this.queue.push(command);
             if(this.status !== 'transitioning')
-                this._start();
+                this._execute();
 
             return this;
         },
 
         addClass: function(className, options) {
-            if(this.fromElement.classList.contains(className))
-                return;
-
-            var style;
-
-            options = Object.assign({}, this.options, options);
-            this.fromElement.classList.add(className);
-
-            style = Object.assign({}, getComputedStyle(this.fromElement));
-            style.opacity = this.fromStyle.opacity;
-            style.transition = this.fromStyle.transition;
-            style.pointerEvents = this.fromStyle.pointerEvents;
-
-            this.toElements.push({
-                el: this.fromElement,
+            var command = {
+                type: 'addClass',
+                el: this.el,
                 className: className,
-                removeClass: false,
-                BCR: this.fromElement.getBoundingClientRect(),
-                style: style,
-                options: options
-            });
+                options: Object.assign({}, this.options, options)
+            };
 
-            this.fromElement.classList.remove(className);
-
+            this.queue.push(command);
             if(this.status !== 'transitioning')
-                this._start();
+                this._execute();
 
             return this;
         },
 
         removeClass: function(className, options) {
-            if(!this.fromElement.classList.contains(className))
-                return;
-
-            var style;
-
-            options = Object.assign({}, this.options, options);
-            this.fromElement.classList.remove(className);
-
-            style = Object.assign({}, getComputedStyle(this.fromElement));
-            style.opacity = this.fromStyle.opacity;
-            style.transition = this.fromStyle.transition;
-            style.pointerEvents = this.fromStyle.pointerEvents;
-
-            this.toElements.push({
-                el: this.fromElement,
+            var command = {
+                type: 'removeClass',
+                el: this.el,
                 className: className,
-                removeClass: true,
-                BCR: this.fromElement.getBoundingClientRect(),
-                style: style,
-                options: options
-            });
+                options: Object.assign({}, this.options, options)
+            };
 
-            this.fromElement.classList.add(className);
-
+            this.queue.push(command);
             if(this.status !== 'transitioning')
-                this._start();
+                this._execute();
 
             return this;
         },
