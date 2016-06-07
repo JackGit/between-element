@@ -2,6 +2,11 @@
  * restrictions:
  *  1. addClass/removeClass only applies for siblings elements
  *  2. and z-index needs to be handle by yourself
+ *
+ * best cross page transition is make less overlap of below three:
+ *  1. outgoing animation
+ *  2. shared element transition
+ *  3. incoming animation
  */
 
 (function (global, factory) {
@@ -37,7 +42,7 @@
         this.el = el;
         this.clonedElement = null;
         this.currentCommand = null;
-        this.queue = []; // {type: 'element | class', element: el, className: '', BRC: '', style: '', options: {}}
+        this.queue = []; // {type: '', element: el, className: '', BRC: '', style: '', options: {}}
         this.firstState = null;
         this.lastState = null;
 
@@ -257,8 +262,11 @@
 
             newStyle = this._styleSnapshot(toEl);
 
-            if(this.options.overrideIncomingOpacity)
+            if(this.options.overrideIncomingOpacity) {
                 newStyle.opacity = 1; // override incoming opacity as always 1
+                toEl.style.opacity = 0;
+            }
+
 
             this.lastState = {
                 BCR: toEl.getBoundingClientRect(),

@@ -37,6 +37,8 @@
             height: 50px;
             border-radius: 50%;
             background: lightseagreen;
+            line-height: 50px;
+            text-align: center;
         }
 
         .details-view {
@@ -62,42 +64,59 @@
             display: inline-block;
             background: white;
         }
+        .grid-item-3 {
+            position: fixed;
+            bottom: 0px;
+            height: 100px;
+            left: 0;
+            width: 100%;
+            background: lightcoral;
+        }
+        .grid-item-2 {
+            background: lightgreen;
+        }
     </style>
 </head>
 <body>
     <ul class="list-view view active" onclick="goToDetailsView()">
-        <li class="list-item"></li>
-        <li class="list-item"></li>
-        <li class="list-item"></li>
+        <li class="list-item"> <span class="t1">text</span></li>
+        <li class="list-item-2 list-item"></li>
+        <li class="list-item-3 list-item"></li>
     </ul>
     <div class="details-view view" onclick="goToListView()">
         <div class="header">
+            <span class="t2">text</span>
         </div>
         <div class="grid">
             <div class="grid-item"></div>
-            <div class="grid-item"></div>
-            <div class="grid-item"></div>
+            <div class="grid-item-2 grid-item"></div>
+            <div class="grid-item-3 grid-item"></div>
         </div>
     </div>
 <script src="../src/between-elements.js"></script>
 <script>
     var listView = document.querySelector('.list-view');
     var detailsView = document.querySelector('.details-view');
+    var b = new BetweenElements(document.querySelector('.list-item'), {duration: 500, overrideIncomingOpacity: true});
+    var b2 = new BetweenElements(document.querySelector('.t1'), {duration: 500, overrideIncomingOpacity: true});
+    var b3 = new BetweenElements(document.querySelector('.list-item-3'), {duration: 500, overrideIncomingOpacity: true});
 
     function goToListView() {
         detailsView.classList.remove('active');
         listView.classList.add('active');
 
-        var b = new BetweenElements(document.querySelector('.header'));
-        b.moveToElement(document.querySelector('.list-item'), {duration: 500, overrideIncomingOpacity: true});
+        b.moveToElement(document.querySelector('.list-item'));
+        b2.moveToElement(document.querySelector('.t1'));
+        b3.moveToElement(document.querySelector('.list-item-3'));
     }
 
     function goToDetailsView() {
         listView.classList.remove('active');
         detailsView.classList.add('active');
 
-        var b = new BetweenElements(document.querySelector('.list-item'));
-        b.moveToElement(document.querySelector('.header'), {duration: 500, overrideIncomingOpacity: true});
+        b.moveToElement(document.querySelector('.header'));
+        b2.moveToElement(document.querySelector('.t2'));
+        b3.moveToElement(document.querySelector('.grid-item-3'));
     }
 
 
